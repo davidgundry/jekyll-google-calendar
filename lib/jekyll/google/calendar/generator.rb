@@ -147,7 +147,18 @@ module Jekyll
                     hash['visibility'] = data.visibility
                     hash['iCalUID'] = data.i_cal_uid
                     hash['sequence'] = data.sequence
-                    hash['attendees'] = data.attendees ? {"id" => data.attendees.id, "email" => data.attendees.email, "displayName" => data.attendees.display_name, "organizer" => data.attendees.organizer, "self" => data.attendees.self, "resource" => data.attendees.resource, "optional" => data.attendees.optional, "responseStatus" => data.attendees.response_status, "comment" => data.attendees.comment, "additionalGuests" => data.attendees.additionalGuests} : nil
+                    hash['attendees'] = data.attendees ? data.attendees.map { |a| {
+                                                         "id" => a.id,
+                                                         "email" => a.email,
+                                                         "displayName" => a.display_name,
+                                                         "organizer" => a.organizer,
+                                                         "self" => a.self,
+                                                         "resource" => a.resource,
+                                                         "optional" => a.optional,
+                                                         "responseStatus" => a.response_status,
+                                                         "comment" => a.comment,
+                                                         "additionalGuests" => a.additional_guests
+                                                         } } : nil
                     hash['attendeesOmitted'] = data.attendees_omitted
                     hash['extendedProperties'] = data.extended_properties ? {"private" => data.extended_properties.private, "shared" => data.extended_properties.shared} : nil
                     hash['hangoutLink'] = data.hangout_link
@@ -175,7 +186,7 @@ module Jekyll
                     hash['conferenceSolution'] = data.conference_solution ? {
                         "key" => data.conference_solution.key ? { "type" => data.conference_solution.key.type} : nil,
                         "name" => data.conference_solution.name,
-                        "iconUri" => data.conference_solution.iconUri
+                        "iconUri" => data.conference_solution.icon_uri
                         } : nil
                     
                     hash['conferenceId'] = data.conference_id
@@ -185,7 +196,7 @@ module Jekyll
                         'type' => data.gadget.type,
                         'title' => data.gadget.title,
                         'link' => data.gadget.link,
-                        'iconLink' => data.gadget.iconLink,
+                        'iconLink' => data.gadget.icon_link,
                         'width' => data.gadget.width,
                         'height' => data.gadget.height,
                         'display' => data.gadget.display,

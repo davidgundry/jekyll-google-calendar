@@ -59,6 +59,10 @@ The gem is available as open source under the terms of the [MIT License](https:/
 
 ## Changelog
 
+### 0.1.1
+
+Fixed critical bug for events with attendees.
+
 ### 0.1.0
 
 Initial release
