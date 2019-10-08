@@ -1,11 +1,9 @@
 require 'google/apis/calendar_v3'
 require 'googleauth'
+require_relative "event_list"
+include Jekyll::Google::Calendar::EventListFilter
 
 GoogleCalendar = ::Google::Apis::CalendarV3
-
-#TODO: Handle case where calendar doesn't exist or is not readable
-#TODO: Add conference data to hash
-#TODO: Add remaining calendar response data to hash
 
 module Jekyll
     module Google
@@ -31,6 +29,7 @@ module Jekyll
                 end
             end
 
+
             ##
             # This class is a Generator that Jekyll will call to generate events from our Google Calendars
 
@@ -47,12 +46,69 @@ module Jekyll
                     @gcallendar_config = site.config['gcalendar']
                     raise 'Missing Google Calendar configuration in _config.yml' unless @gcallendar_config
                     service = setup_calendar()
+                    site.data["calendars"] = Hash.new
                     @gcallendar_config['calendars'].each do |calendar|
                         process_calendar(site, service, calendar['id'], calendar['look_ahead'], calendar['directory'], calendar['date_format'], calendar['layout'])
+                    end
+
+                    unless @gcallendar_config["event_list_name"].nil?
+                        events = []
+                        unless site.data["calendars"].nil?
+                            site.data["calendars"].each do |calendar|
+                                events = events.concat(calendar[1])
+                            end
+                            events = get_google_calendar_events_by_date_offset(events,0,-1,1000)
+
+                            page_size = @gcallendar_config['event_list_per_page']
+                            pages = (events.length / page_size).ceil
+                            for i in 0..(pages-1)
+                                create_event_list_page(site, events.slice(i*page_size, page_size), @gcallendar_config['event_list_page_layout'], i+1, pages, events.length)
+                            end
+                        end
                     end
                 end
         
                 private
+
+                def create_event_list_page(site, event_list, layout, event_list_page, event_list_pages, total_events)
+                    dir = @gcallendar_config["event_list_name"]
+                    path = "/" + (dir[-1] == "/" ? dir : dir + "/") + event_list_page .to_s
+                    if (event_list_page == 1)
+                        path = "/" + (dir[-1] == "/" ? dir : dir + "/")
+                    end
+
+                    prev_path = nil
+                    prev_page = nil
+                    if (event_list_page > 1)
+                        prev_page = event_list_page-1
+                        prev_path = "/" + (dir[-1] == "/" ? dir : dir + "/") + (event_list_page-1).to_s
+                        if (event_list_page == 2)
+                            prev_path = "/" + (dir[-1] == "/" ? dir : dir + "/")
+                        end
+                    end
+
+                    next_path = nil
+                    next_page = nil
+                    if (event_list_page <= event_list_pages)
+                        next_page = event_list_page+1
+                        next_path = "/" + (dir[-1] == "/" ? dir : dir + "/") + (event_list_page+1).to_s
+                        if (event_list_page == 2)
+                            next_path = "/" + (dir[-1] == "/" ? dir : dir + "/")
+                        end
+                    end
+
+                    paginator = {"page" => event_list_page,
+                                "per_page" => @gcallendar_config['event_list_per_page'],
+                                "events" => event_list,
+                                "total_events" => total_events,
+                                "total_pages" => event_list_pages,
+                                "previous_page" => prev_page,
+                                "previous_page_path" => prev_path,
+                                "next_page" => next_page,
+                                "next_page_path" => next_path}
+
+                    site.pages << EventListPage.new(site, site.source, path, 'index.html', layout, paginator)
+                end
 
                 def setup_calendar()
                     scope = 'https://www.googleapis.com/auth/calendar'
@@ -69,6 +125,7 @@ module Jekyll
                     page_token = nil
                     calendar_data = nil
                     end_time = DateTime.now + look_ahead
+                    site.data["calendars"][calendar_id] = []
                     begin
                         response = get_events(calendar, calendar_id, page_token, end_time)
                         calendar_data = calendar_data ? calendar_data : hash_calendar_data(response)
@@ -106,6 +163,7 @@ module Jekyll
                         path += "-" + overlap.length.to_s
                     end
                     site.pages << EventPage.new(site, site.source, path, 'index.html', layout, hash, calendar_data, calendar_id)
+                    site.data["calendars"][calendar_id].push(hash);
                 end
 
                 def hash_calendar_data(response)
@@ -205,6 +263,21 @@ module Jekyll
                     hash
                 end
             end
+
+            class EventListPage < Page
+                def initialize(site, base, dir, name, layout, paginator)
+                    @site = site
+                    @base = base
+                    @dir = dir
+                    @name = name
+                    self.process(@name)
+                    self.data    = site.layouts[layout].data.dup
+                    self.content = site.layouts[layout].content.dup
+                    self.data['layout'] = layout
+                    self.data['events'] = paginator
+                end
+            end
+
         end
     end
 end
