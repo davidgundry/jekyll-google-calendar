@@ -162,6 +162,7 @@ module Jekyll
                     if overlap.length > 0
                         path += "-" + overlap.length.to_s
                     end
+                    hash['url'] = "/"+path+"/";
                     site.pages << EventPage.new(site, site.source, path, 'index.html', layout, hash, calendar_data, calendar_id)
                     site.data["calendars"][calendar_id].push(hash);
                 end
