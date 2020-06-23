@@ -59,6 +59,18 @@ The gem is available as open source under the terms of the [MIT License](https:/
 
 ## Changelog
 
+### 0.3.1
+
+Updated Rake dependancy to at least version 12.3.3 due to [vulnerability](https://github.com/advisories/GHSA-jppv-gw3r-w3q8).
+
+### 0.3.0
+
+Added url value to event data for internal event page
+
+### 0.2.0
+
+Paginated events list generator 
+
 ### 0.1.1
 
 Fixed critical bug for events with attendees.
