@@ -59,6 +59,12 @@ The gem is available as open source under the terms of the [MIT License](https:/
 
 ## Changelog
 
+### 0.3.2
+
+- Fix guard against missing `status` on ConferenceData (avoid NoMethodError)
+- Fix guard against missing `gadget` on ConferenceData
+- Bump `addressable` gem (PR #4) to address a vulnerability
+
 ### 0.3.1
 
 Updated Rake dependancy to at least version 12.3.3 due to [vulnerability](https://github.com/advisories/GHSA-jppv-gw3r-w3q8).

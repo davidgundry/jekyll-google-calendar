@@ -237,7 +237,7 @@ module Jekyll
                 def hash_conference_data(data)
                     hash = {}
                     hash['createRequest'] = data.create_request ? data.create_request.map { |a| { "requestId" => a.request_id, "conferenceSolutionKey" => a.conference_solution_key ? a.conference_solution_key.map { |b| { "type" => b.type } } : nil } }: nil
-                    hash['status'] = data.status ? {
+                    hash['status'] = data.respond_to?(:status) && data.status ? {
                         'statusCode' => data.status.statusCode
                         } : nil
                     hash['entryPoints'] = data.entry_points ? data.entry_points.map { |a| { "entryPointType" => a.entry_point_type, "uri" => a.uri, "label" => a.label, "pin" => a.pin, "accessCode" => a.access_code, "meetingCode" => a.meeting_code, "passcode" => a.passcode, "password" => a.password }} : nil
@@ -251,7 +251,7 @@ module Jekyll
                     hash['conferenceId'] = data.conference_id
                     hash['signature'] = data.signature
                     hash['notes'] = data.notes
-                    hash['gadget'] = data.gadget ? {
+                    hash['gadget'] = data.respond_to?(:gadget) && data.gadget ? {
                         'type' => data.gadget.type,
                         'title' => data.gadget.title,
                         'link' => data.gadget.link,
